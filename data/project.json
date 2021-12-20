@@ -1,0 +1,10 @@
+{
+  "datasets": [
+    "S016"
+  ],
+  "defaultDataset": "S016",
+  "imageDataFormats": [
+    "bdv.n5"
+  ],
+  "specVersion": "0.2.0"
+}
