@@ -17,24 +17,21 @@ def get_filter_config():
     filters = [filter_impl.gaussianSmoothing,
                filter_impl.laplacianOfGaussian,
                filter_impl.gaussianGradientMagnitude,
-               filter_impl.hessianOfGaussianEigenvalues,
-               filter_impl.structureTensorEigenvalues]
+               filter_impl.hessianOfGaussianEigenvalues]
     sigmas = [
-        (0.35, 0.7, 0.7),
         (0.8, 1.6, 1.6),
         (1.75, 3.5, 3.5),
         (2.5, 5.0, 5.0),
     ]
     filters_and_sigmas = [
-        (filt, sigma) if i != len(filters) - 1 else (partial(filt, outerScale=tuple(2 * sig for sig in sigma)), sigma)
-        for i, filt in enumerate(filters) for sigma in sigmas
+        (filt, sigma) for filt in filters for sigma in sigmas
     ]
     return filters_and_sigmas
 
 
 def prepare_shallow2deep_cremi(args, out_folder):
-    patch_shape_min = [16, 256, 256]
-    patch_shape_max = [32, 384, 384]
+    patch_shape_min = [16, 128, 128]
+    patch_shape_max = [32, 256, 256]
 
     raw_transform = torch_em.transform.raw.normalize
     label_transform = shallow2deep.BoundaryTransform(ndim=3)
@@ -63,11 +60,11 @@ def get_cremi_loader(args, split, rf_folder):
 
     if split == "train":
         n_samples = 1000
-        rois = np.s_[:75, :, :]
+        rois = 2 * (np.s_[:, :, :],) + (np.s_[:75, :, :],)
         assert len(rois) == len(paths)
     else:
         n_samples = 25
-        rois = np.s_[75:, :, :]
+        rois = (np.s_[75:, :, :],)
         paths = paths[-1:]
         assert len(paths) == 1
 
@@ -80,14 +77,14 @@ def get_cremi_loader(args, split, rf_folder):
         batch_size=args.batch_size, patch_shape=patch_shape, rois=rois,
         raw_transform=raw_transform, label_transform=label_transform,
         n_samples=n_samples, ndim=3, is_seg_dataset=True, shuffle=True,
-        num_workers=8, filter_config=get_filter_config(),
+        num_workers=24, filter_config=get_filter_config(),
     )
     return loader
 
 
 def train_shallow2deep(args):
     # TODO find a version scheme for names depending on args and existing versions
-    name = "cremi3d"
+    name = f"cremi3d-v{args.version}"
 
     # check if we need to train the rfs for preparation
     rf_folder = os.path.join("checkpoints", name, "rfs")
@@ -118,10 +115,9 @@ def check_loader(args, n=4):
 
 if __name__ == "__main__":
     parser = torch_em.util.parser_helper()
-    # parser.add_argument("--n_rfs", type=int, default=500)
-    # parser.add_argument("--n_threads", type=int, default=32)
-    parser.add_argument("--n_rfs", type=int, default=1)
-    parser.add_argument("--n_threads", type=int, default=1)
+    parser.add_argument("--n_rfs", type=int, default=500)
+    parser.add_argument("--n_threads", type=int, default=32)
+    parser.add_argument("-v", "--version", type=int, required=True)
     args = parser.parse_args()
     if args.check:
         check_loader(args)

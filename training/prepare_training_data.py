@@ -17,10 +17,14 @@ def prepare_volume(in_path, out_path):
 def prepare_all():
     os.makedirs("./data", exist_ok=True)
     in_paths = [
-        "/home/pape/Work/data/cremi/sample_A_20160501.hdf",
+        "/g/kreshuk/data/cremi/original/sample_A_20160501.hdf",
+        "/g/kreshuk/data/cremi/original/sample_B_20160501.hdf",
+        "/g/kreshuk/data/cremi/original/sample_C_20160501.hdf",
     ]
     out_paths = [
         "./data/sampleA.h5",
+        "./data/sampleB.h5",
+        "./data/sampleC.h5",
     ]
     for path, out_path in zip(in_paths, out_paths):
         prepare_volume(path, out_path)
