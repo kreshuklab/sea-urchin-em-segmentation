@@ -7,17 +7,10 @@ import torch_em
 import torch_em.shallow2deep as shallow2deep
 from torch_em.model import AnisotropicUNet
 
-try:
-    import fastfilters as filter_impl
-except ImportError:
-    import vigra.filters as filter_impl
-
 
 def get_filter_config():
-    filters = [filter_impl.gaussianSmoothing,
-               filter_impl.laplacianOfGaussian,
-               filter_impl.gaussianGradientMagnitude,
-               filter_impl.hessianOfGaussianEigenvalues]
+    filters = ["gaussianSmoothing", "laplacianOfGaussian",
+               "gaussianGradientMagnitude", "hessianOfGaussianEigenvalues"]
     sigmas = [
         (0.8, 1.6, 1.6),
         (1.75, 3.5, 3.5),
