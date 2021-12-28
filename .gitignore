@@ -1,3 +1,4 @@
 tmp*/
 *.n5/
 *.h5
+networks/
