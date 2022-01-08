@@ -4,7 +4,7 @@ import h5py
 from torch_em.util import export_bioimageio_model, get_default_citations
 
 
-def export_to_bioimageio(version):
+def export_enhancer(version):
     path = "./data/sampleA.h5"
     with h5py.File(path, "r") as f:
         input_data = f["volumes/raw"][:16, :256, :256]
@@ -38,8 +38,21 @@ def export_to_bioimageio(version):
     )
 
 
-if __name__ == "__main__":
+# TODO
+def export_pseudolabel(version):
+    pass
+
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--version", required=True, type=int)
+    parser.add_argument("-p", "--pseudolabel", type=int, default=0)
     args = parser.parse_args()
-    export_to_bioimageio(args.version)
+    if args.pseudolabel:
+        export_pseudolabel(args.version)
+    else:
+        export_enhancer(args.version)
+
+
+if __name__ == "__main__":
+    main()

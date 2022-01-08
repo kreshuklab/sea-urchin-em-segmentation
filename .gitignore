@@ -2,3 +2,4 @@ tmp*/
 *.n5/
 *.h5
 networks/
+__pycache__/
