@@ -18,7 +18,7 @@ def predict_rf(ilp, raw, path):
     print("Run random forest prediction ...")
     ilp = from_project_file(ilp)
     input_ = DataArray(raw, dims=("z", "y", "x"))
-    pred = ilp.predict(input_)
+    pred = ilp.predict(input_).values
     with h5py.File(path, "a") as f:
         f.create_dataset("rf_pred", data=pred, compression="gzip")
     return pred
