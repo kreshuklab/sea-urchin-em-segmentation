@@ -56,10 +56,11 @@ def main():
     rf_pred = predict_rf(ilp, raw, raw_path)
     pred = predict_enhancer(model, rf_pred[..., 1], raw_path)
 
+    print("start viewer")
     v = napari.Viewer()
     v.add_image(raw)
-    v.add_image(rf_pred[..., 1])
-    v.add_image(pred.squeeze())
+    v.add_image(rf_pred[..., 1], name="random forest")
+    v.add_image(pred.squeeze(), name="enhancer")
     napari.run()
 
 
