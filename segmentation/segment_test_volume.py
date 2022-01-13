@@ -91,14 +91,18 @@ def segment_test_volume(path, ilp, model, force, view):
 
 
 def main():
+    this_folder = os.path.split(__file__)[0]
+    default_ilp = os.path.join(this_folder, "../ilastik_projects/boundary_prediction_v2.ilp")
+    default_model = os.path.join(this_folder, "../networks/cremi-v1.zip")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--vol_id", type=int, required=True)
-    parser.add_argument("-i", "--ilp", default="../boundary_prediction.ilp")
-    parser.add_argument("-m", "--model", default="../networks/cremi-v1.zip")
+    parser.add_argument("-i", "--ilp", default=default_ilp)
+    parser.add_argument("-m", "--model", default=default_model)
     parser.add_argument("-f", "--force", type=int, default=0)
     parser.add_argument("--view", type=int, default=0)
     args = parser.parse_args()
-    path = os.path.join(os.path.split(__file__)[0], f"../test_volumes/vol{args.vol_id}.h5")
+    path = os.path.join(this_folder, f"../test_volumes/vol{args.vol_id}.h5")
     segment_test_volume(path, args.ilp, args.model, bool(args.force), bool(args.view))
 
 
