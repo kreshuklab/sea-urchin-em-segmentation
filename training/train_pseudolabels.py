@@ -15,10 +15,10 @@ def get_pseudolabel_loader(args, split):
 
     if split == "train":
         n_samples = 1000
-        rois = [np.s_[:75, :, :]]
+        rois = [np.s_[:75, :, :]] * 4
     else:
         n_samples = 25
-        rois = [np.s_[75:, :, :]]
+        rois = [np.s_[75:, :, :]] * 4
     assert len(rois) == len(paths)
 
     rf_path = "../boundary_prediction.ilp"
@@ -26,11 +26,12 @@ def get_pseudolabel_loader(args, split):
     ckpt = "./checkpoints/cremi3d-v1"
 
     raw_transform = torch_em.transform.raw.normalize
+    # 12 workers is still not full throughput here
     loader = shallow2deep.get_pseudolabel_loader(
         raw_paths=paths, raw_key="raw", checkpoint=ckpt, rf_config=rf_config,
         batch_size=args.batch_size, patch_shape=patch_shape, rois=rois,
         raw_transform=raw_transform, n_samples=n_samples, ndim=3,
-        is_raw_dataset=True, shuffle=True, num_workers=8,
+        is_raw_dataset=True, shuffle=True, num_workers=12,
     )
     return loader
 
