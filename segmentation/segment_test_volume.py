@@ -4,6 +4,7 @@ import os
 import bioimageio.core
 import elf.segmentation as eseg
 import h5py
+import numpy as np
 
 from bioimageio.core.prediction_pipeline import create_prediction_pipeline
 from bioimageio.core.prediction import predict_with_tiling
@@ -12,7 +13,7 @@ from ilastik.experimental.api import from_project_file
 from xarray import DataArray
 
 
-def predict_rf(raw, path, ilp, prefix, force=False):
+def predict_rf(raw, path, ilp, prefix, subtract_bg=True, force=False):
     key = f"{prefix}/rf_pred"
     if os.path.exists(path):
         with h5py.File(path, "r") as f:
@@ -22,7 +23,10 @@ def predict_rf(raw, path, ilp, prefix, force=False):
     print("Run random forest prediction ...")
     ilp = from_project_file(ilp)
     input_ = DataArray(raw, dims=("z", "y", "x"))
-    pred = ilp.predict(input_).values[..., 1]
+    output = ilp.predict(input_).values
+    bg, pred = output[..., 0], output[..., 1]
+    if subtract_bg:
+        pred = np.clip(pred - bg, 0, 1)
     with h5py.File(path, "a") as f:
         ds = f.require_dataset(key, shape=pred.shape, compression="gzip", dtype=pred.dtype)
         ds[:] = pred
@@ -37,8 +41,8 @@ def predict_enhancer(rf_pred, path, model, prefix, force=False):
             print("Load prediction from memory ...")
             return f[key][:]
     print("Run enhancer prediction ...")
-    tiling = {"halo": {"x": 16, "y": 16, "z": 4},
-              "tile": {"x": 224, "y": 224, "z": 12}}
+    tiling = {"halo": {"x": 32, "y": 32, "z": 4},
+              "tile": {"x": 384, "y": 384, "z": 32}}
     with create_prediction_pipeline(bioimageio_model=model) as pp:
         inputs = [DataArray(rf_pred[None, None], dims=tuple(pp.input_specs[0].axes))]
         pred = predict_with_tiling(pp, inputs, tiling, verbose=True)[0].values.squeeze()

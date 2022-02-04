@@ -11,10 +11,15 @@ from torch_em.model import AnisotropicUNet
 def get_filter_config():
     filters = ["gaussianSmoothing", "laplacianOfGaussian",
                "gaussianGradientMagnitude", "hessianOfGaussianEigenvalues"]
+    # sigmas = [
+    #     (0.8, 1.6, 1.6),
+    #     (1.75, 3.5, 3.5),
+    #     (2.5, 5.0, 5.0),
+    # ]
     sigmas = [
-        (0.8, 1.6, 1.6),
-        (1.75, 3.5, 3.5),
-        (2.5, 5.0, 5.0),
+        (0.2, 1.6, 1.6),
+        (0.4, 3.5, 3.5),
+        (0.6, 5.0, 5.0),
     ]
     filters_and_sigmas = [
         (filt, sigma) for filt in filters for sigma in sigmas
