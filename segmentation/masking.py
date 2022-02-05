@@ -24,7 +24,7 @@ def compute_masks(raw_path, ilp_path):
     else:
         ilp = from_project_file(ilp_path)
         input_ = DataArray(raw, dims=("z", "y", "x"))
-        pred = ilp.predict(input_)[0].values
+        pred = ilp.predict(input_).values
         with h5py.File(tmp_path, "a") as f:
             f.create_dataset("data", data=pred, compression="gzip")
 
