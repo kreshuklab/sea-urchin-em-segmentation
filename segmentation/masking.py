@@ -37,7 +37,7 @@ def compute_masks(raw_path, ilp_path):
 def main():
     this_folder = os.path.split(__file__)[0]
     raw_path = os.path.join(
-        this_folder, "../data/S016/images/bdv-n5/raw.n5"
+        this_folder, "../data/S016/images/bdv-n5/S016_aligned_full.n5"
     )
     ilp_path = os.path.join(
         this_folder, "../ilastik_projects/jil/masking_im_s4downsampled.ilp"
