@@ -2,4 +2,5 @@ tmp*/
 *.n5/
 *.h5
 networks/
+downscaled_data/
 __pycache__/
