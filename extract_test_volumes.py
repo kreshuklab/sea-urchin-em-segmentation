@@ -6,18 +6,12 @@ from mobie.viewer_transformations import affine_to_position
 DATA_PATH = "/g/emcf/ronchi/Lueter-Esther/S016_21-12-08_10nm_final/aligned/20211215/S016_aligned_full.n5"
 KEY = "setup0/timepoint0/s0"
 
-# test position
-# RESOLUTION = [0.04, 0.01, 0.01]
-# POSITIONS = [
-#     {"position": [85.89538020654878, 40.49100431959676, 41.49596211133668], "timepoint": 0}
-# ]
-
 RESOLUTION = [0.04, 0.01, 0.01]
 POSITIONS = [
-    {"position":[96.68819639184461, 72.1844707668459, 48.2970615042884], "timepoint": 0},
-    {"position":[90.40336311288618, 67.8636478875620, 45.4688865287571], "timepoint": 0},
-    {"position":[88.36079229722469, 47.5950605629211, 50.2610719039629], "timepoint": 0},
-    {"position":[92.99585684045653, 68.2564499674969, 45.0760844488222], "timepoint": 0}
+    {"position": [96.68819639184461, 72.1844707668459, 48.2970615042884], "timepoint": 0},
+    {"position": [90.40336311288618, 67.8636478875620, 45.4688865287571], "timepoint": 0},
+    {"position": [88.36079229722469, 47.5950605629211, 50.2610719039629], "timepoint": 0},
+    {"position": [92.99585684045653, 68.2564499674969, 45.0760844488222], "timepoint": 0}
 ]
 
 

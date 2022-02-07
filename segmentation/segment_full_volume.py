@@ -28,7 +28,7 @@ def predict_ilastik(input_path, input_key,
         input_path=input_path, input_key=input_key,
         output_path=output_path, output_key=output_key,
         mask_path=mask_path, mask_key=mask_key,
-        ilastik_project=ilp, halo=halo, out_channels=out_channels
+        ilastik_project=ilp, halo=halo, out_channels=out_channels,
     )
     ret = luigi.build([t], local_scheduler=True)
     assert ret, "Ilastik prediction failed"
@@ -54,7 +54,8 @@ def predict_boundaries(input_path, input_key,
     # full_block_shape = [bs + 2 * ha]
 
     conf = task.default_task_config()
-    conf["mem_limit"] = 8
+    conf["mem_limit"] = 12
+    conf["threads_per_job"] = 6
     conf["time_limit"] = 600
     with open(os.path.join(config_dir, "inference.config"), "w") as f:
         json.dump(conf, f)
@@ -72,7 +73,8 @@ def predict_boundaries(input_path, input_key,
 
 def blockwise_multicut(path, boundary_key,
                        mask_path, mask_key,
-                       tmp_folder, target, max_jobs):
+                       tmp_folder, target,
+                       max_jobs):
     from cluster_tools import MulticutSegmentationWorkflow
     config_dir = os.path.join(tmp_folder, "configs")
     problem_path = os.path.join(tmp_folder, "data.n5")
@@ -87,7 +89,7 @@ def blockwise_multicut(path, boundary_key,
     assert luigi.build([task], local_scheduler=True), "Multicut segmentation failed"
 
 
-def segment_full_volume(input_path, mask_path, tmp_path, ilp, model, use_bb, target, max_jobs):
+def segment_full_volume(input_path, mask_path, tmp_path, ilp, model, use_bb, target, max_jobs, max_jobs_gpu):
     tmp = os.path.join(tmp_path, "tmp")
     mask_key = "setup0/timepoint0/s0"
 
@@ -109,7 +111,7 @@ def segment_full_volume(input_path, mask_path, tmp_path, ilp, model, use_bb, tar
 
     boundary_key = "predictions/enhancer"
     predict_boundaries(
-        rf_path, rf_key, path, boundary_key, mask_path, mask_key, model, tmp, target, max_jobs
+        rf_path, rf_key, path, boundary_key, mask_path, mask_key, model, tmp, target, max_jobs_gpu
     )
     blockwise_multicut(
         path, boundary_key, mask_path, mask_key, tmp, target, max_jobs
@@ -127,6 +129,7 @@ def main():
     parser.add_argument("-b", "--use_bb", default=0, type=int)
     parser.add_argument("-t", "--target", default="slurm")
     parser.add_argument("--max_jobs", default=200, type=int)
+    parser.add_argument("--max_jobs_gpu", default=12, type=int)
 
     args = parser.parse_args()
     use_bb = bool(args.use_bb)
@@ -142,7 +145,7 @@ def main():
 
     os.makedirs(tmp_path, exist_ok=True)
     segment_full_volume(input_path, mask_path, tmp_path, args.ilp, args.model, use_bb,
-                        args.target, args.max_jobs)
+                        args.target, args.max_jobs, args.max_jobs_gpu)
 
 
 if __name__ == "__main__":
