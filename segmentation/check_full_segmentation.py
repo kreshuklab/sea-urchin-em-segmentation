@@ -24,7 +24,7 @@ def check_full_seg(position, halo=[50, 512, 512]):
         ds = f[raw_key]
         shape = ds.shape
         ds.n_threads = 8
-        raw = f[bb]
+        raw = ds[bb]
 
     mask_path = "../data/S016/images/bdv-n5/foreground.n5"
     mask_key = "setup0/timepoint0/s0"
@@ -44,7 +44,7 @@ def check_full_seg(position, halo=[50, 512, 512]):
         if enh_key in f:
             ds = f[enh_key]
             ds.n_threads = 8
-            enh = ds[:]
+            enh = ds[bb]
         else:
             enh = None
 
@@ -59,7 +59,7 @@ def check_full_seg(position, halo=[50, 512, 512]):
 
 
 def get_position(block_id):
-    position = POSITIONS[block_id]
+    position = POSITIONS[block_id]["position"]
     position = [int(pos / res) for pos, res in zip(position[::-1], RESOLUTION)]
     return position
 

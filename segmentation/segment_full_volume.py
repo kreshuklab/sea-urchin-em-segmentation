@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from copy import deepcopy
 
 import luigi
 
@@ -44,7 +45,8 @@ def predict_boundaries(input_path, input_key,
     config_dir = os.path.join(tmp_folder, "configs")
 
     model_spec = bioimageio.core.load_resource_description(model)
-    halo = model_spec.outputs[0].halo
+    halo = model_spec.outputs[0].halo[2:]
+    assert len(halo) == 3
 
     # TODO expose convenience function in bioimageio for this
     # make sure the block shape fits the network
@@ -53,22 +55,38 @@ def predict_boundaries(input_path, input_key,
     # block_shape =
     # full_block_shape = [bs + 2 * ha]
 
+    global_config = task.default_global_config()
+    default_global_config = deepcopy(global_config)
+
+    full_block_shape = (32, 384, 384)
+    block_shape = tuple(fbs - 2*ha for fbs, ha in zip(full_block_shape, halo))
+    print(full_block_shape, block_shape, halo)
+    global_config["block_shape"] = block_shape
+    with open(os.path.join(config_dir, "global.config"), "w") as f:
+        json.dump(global_config, f)
+
     conf = task.default_task_config()
     conf["mem_limit"] = 12
     conf["threads_per_job"] = 6
     conf["time_limit"] = 600
+    conf["slurm_extras"] = ["#SBATCH --gres=gpu:1"]
+    breakpoint()
     with open(os.path.join(config_dir, "inference.config"), "w") as f:
         json.dump(conf, f)
 
+    output_key_dict = {output_key: [0, 1]}
     t = task(
         tmp_folder=tmp_folder, config_dir=config_dir, max_jobs=max_jobs,
         input_path=input_path, input_key=input_key,
-        output_path=output_path, output_key=output_key,
+        output_path=output_path, output_key=output_key_dict,
         mask_path=mask_path, mask_key=mask_key,
         checkpoint_path=model, halo=halo, framework="bioimageio"
     )
     ret = luigi.build([t], local_scheduler=True)
     assert ret, "Network prediction failed"
+
+    with open(os.path.join(config_dir, "global.config"), "w") as f:
+        json.dump(default_global_config, f)
 
 
 def blockwise_multicut(path, boundary_key,
