@@ -70,7 +70,6 @@ def predict_boundaries(input_path, input_key,
     conf["threads_per_job"] = 6
     conf["time_limit"] = 600
     conf["slurm_extras"] = ["#SBATCH --gres=gpu:1"]
-    breakpoint()
     with open(os.path.join(config_dir, "inference.config"), "w") as f:
         json.dump(conf, f)
 
@@ -85,6 +84,8 @@ def predict_boundaries(input_path, input_key,
     ret = luigi.build([t], local_scheduler=True)
     assert ret, "Network prediction failed"
 
+    if "partition" in default_global_config:
+        default_global_config.pop("partition")
     with open(os.path.join(config_dir, "global.config"), "w") as f:
         json.dump(default_global_config, f)
 
@@ -94,20 +95,49 @@ def blockwise_multicut(path, boundary_key,
                        tmp_folder, target,
                        max_jobs):
     from cluster_tools import MulticutSegmentationWorkflow
+    task = MulticutSegmentationWorkflow
+
     config_dir = os.path.join(tmp_folder, "configs")
+    # increase runtime and resources for the "map" and "reduce"-like tasks
+    map_tasks = ["watershed", "write", "find_uniques", "initial_sub_graphs",
+                 "block_edge_features", "probs_to_costs", "merge_edge_features"]
+    reduce_tasks = ["find_labeling", "merge_sub_graphs", "map_edge_ids",  # "merge_edge_features",
+                    "solve_subproblems", "reduce_problem", "solve_global", "probs_to_costs"]
+    configs = task.get_config()
+    for task_name in map_tasks:
+        conf = configs[task_name]
+        conf["time_limit"] = 600 if task_name == "merged_edge_features" else 300
+        conf["mem_limit"] = 40 if task_name in ("write", "merge_edge_features") else 4
+        conf["threads_per_job"] = 1
+        # TODO larger size filter!
+        if task_name == "watershed":
+            conf.update({"threshold": 0.4})
+        with open(os.path.join(config_dir, f"{task_name}.config"), "w") as f:
+            json.dump(conf, f)
+    for task_name in reduce_tasks:
+        conf = configs[task_name]
+        conf["time_limit"] = 1200
+        conf["mem_limit"] = 256
+        conf["threads_per_job"] = 16 if task_name == "solve_subproblems" else 8
+        with open(os.path.join(config_dir, f"{task_name}.config"), "w") as f:
+            json.dump(conf, f)
+
     problem_path = os.path.join(tmp_folder, "data.n5")
-    task = MulticutSegmentationWorkflow(
+    t = task(
         tmp_folder=tmp_folder, config_dir=config_dir,
         target=target, max_jobs=max_jobs,
         input_path=path, input_key=boundary_key,
         ws_path=path, ws_key="segmentations/watershed",
         problem_path=problem_path, node_labels_key="node_labels/multicut",
-        output_path=path, output_key="segmentations/multicut"
+        output_path=path, output_key="segmentations/multicut",
+        max_jobs_multicut=16
     )
-    assert luigi.build([task], local_scheduler=True), "Multicut segmentation failed"
+    assert luigi.build([t], local_scheduler=True), "Multicut segmentation failed"
 
 
-def segment_full_volume(input_path, mask_path, tmp_path, ilp, model, use_bb, target, max_jobs, max_jobs_gpu):
+def segment_full_volume(
+    input_path, mask_path, tmp_path, ilp, model, use_bb, target, max_jobs, max_jobs_gpu
+):
     tmp = os.path.join(tmp_path, "tmp")
     mask_key = "setup0/timepoint0/s0"
 
