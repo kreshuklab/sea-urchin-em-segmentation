@@ -10,6 +10,15 @@
         }
       }
     },
+    "neurons": {
+      "segmentation": {
+        "imageData": {
+          "bdv.n5": {
+            "relativePath": "images/bdv-n5/neurons.xml"
+          }
+        }
+      }
+    },
     "raw": {
       "image": {
         "imageData": {
@@ -62,6 +71,22 @@
       ],
       "uiSelectionGroup": "mask"
     },
+    "neurons": {
+      "isExclusive": false,
+      "sourceDisplays": [
+        {
+          "segmentationDisplay": {
+            "lut": "glasbey",
+            "name": "neurons",
+            "opacity": 0.5,
+            "sources": [
+              "neurons"
+            ]
+          }
+        }
+      ],
+      "uiSelectionGroup": "segmentation"
+    },
     "raw": {
       "isExclusive": false,
       "sourceDisplays": [
@@ -81,6 +106,50 @@
         }
       ],
       "uiSelectionGroup": "em"
+    },
+    "test-volume-0": {
+      "isExclusive": false,
+      "uiSelectionGroup": "bookmark",
+      "viewerTransform": {
+        "position": [
+          96.68819639184461,
+          72.1844707668459,
+          48.2970615042884
+        ]
+      }
+    },
+    "test-volume-1": {
+      "isExclusive": false,
+      "uiSelectionGroup": "bookmark",
+      "viewerTransform": {
+        "position": [
+          90.40336311288618,
+          67.863647887562,
+          45.4688865287571
+        ]
+      }
+    },
+    "test-volume-2": {
+      "isExclusive": false,
+      "uiSelectionGroup": "bookmark",
+      "viewerTransform": {
+        "position": [
+          88.36079229722469,
+          47.5950605629211,
+          50.2610719039629
+        ]
+      }
+    },
+    "test-volume-3": {
+      "isExclusive": false,
+      "uiSelectionGroup": "bookmark",
+      "viewerTransform": {
+        "position": [
+          92.99585684045653,
+          68.2564499674969,
+          45.0760844488222
+        ]
+      }
     }
   }
 }
