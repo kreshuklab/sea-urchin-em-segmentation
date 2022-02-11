@@ -8,7 +8,9 @@ POSITIONS = [
     {"position": [96.68819639184461, 72.1844707668459, 48.2970615042884], "timepoint": 0},
     {"position": [90.40336311288618, 67.8636478875620, 45.4688865287571], "timepoint": 0},
     {"position": [88.36079229722469, 47.5950605629211, 50.2610719039629], "timepoint": 0},
-    {"position": [92.99585684045653, 68.2564499674969, 45.0760844488222], "timepoint": 0}
+    {"position": [92.99585684045653, 68.2564499674969, 45.0760844488222], "timepoint": 0},
+    {"position": [79.63786210708265, 35.570588043937065, 43.05437392587734], "timepoint": 0},
+    {"position": [67.92503657409318, 48.2888906957717, 59.229134554384544], "timepoint":0}
 ]
 
 
@@ -34,6 +36,8 @@ def check_full_seg(position, halo=[50, 512, 512]):
     tmp_path = "/scratch/pape/jils_project/full_seg/data.n5"
     rf_key = "predictions/rf"
     enh_key = "predictions/enhancer"
+    ws_key = "segmentations/watershed"
+    mc_key = "segmentations/multicut"
     with open_file(tmp_path, "r") as f:
         if rf_key in f:
             ds = f[rf_key]
@@ -47,6 +51,18 @@ def check_full_seg(position, halo=[50, 512, 512]):
             enh = ds[bb]
         else:
             enh = None
+        if ws_key in f:
+            ds = f[ws_key]
+            ds.n_threads = 8
+            ws = ds[bb]
+        else:
+            ws = None
+        if mc_key in f:
+            ds = f[mc_key]
+            ds.n_threads = 8
+            mc = ds[bb]
+        else:
+            mc = None
 
     v = napari.Viewer()
     v.add_image(raw)
@@ -55,6 +71,10 @@ def check_full_seg(position, halo=[50, 512, 512]):
         v.add_image(rf_pred)
     if enh is not None:
         v.add_image(enh)
+    if ws is not None:
+        v.add_labels(ws)
+    if mc is not None:
+        v.add_labels(mc)
     napari.run()
 
 

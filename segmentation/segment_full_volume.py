@@ -97,6 +97,7 @@ def blockwise_multicut(path, boundary_key,
     from cluster_tools import MulticutSegmentationWorkflow
     task = MulticutSegmentationWorkflow
 
+    # TODO set a time limit for the global multicut or use greedy-additive
     config_dir = os.path.join(tmp_folder, "configs")
     # increase runtime and resources for the "map" and "reduce"-like tasks
     map_tasks = ["watershed", "write", "find_uniques", "initial_sub_graphs",
@@ -128,6 +129,7 @@ def blockwise_multicut(path, boundary_key,
         target=target, max_jobs=max_jobs,
         input_path=path, input_key=boundary_key,
         ws_path=path, ws_key="segmentations/watershed",
+        mask_path=mask_path, mask_key=mask_key,
         problem_path=problem_path, node_labels_key="node_labels/multicut",
         output_path=path, output_key="segmentations/multicut",
         max_jobs_multicut=16

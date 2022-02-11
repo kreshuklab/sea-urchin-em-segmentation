@@ -1,4 +1,5 @@
 import argparse
+import time
 
 import nifty
 import vigra
@@ -39,12 +40,14 @@ def solve_last_multicut(solver_name, time_limit):
     graph.insertEdges(uv_ids)
 
     print("Start multicut solver")
+    t0 = time.time()
     node_labeling = solver(graph, costs, n_threads=n_threads, time_limit=time_limit)
+    print("done in", time.time() - t0, "seconds")
 
     print("Relabel nodes")
     initial_node_labeling = node_labeling[initial_node_labeling]
     # make sure zero is mapped to 0 if we have an ignore label
-    n_nodes = len(node_labeling)
+    n_nodes = len(initial_node_labeling)
     if ignore_label and node_labeling[0] != 0:
         new_max_label = int(initial_node_labeling.max() + 1)
         initial_node_labeling[initial_node_labeling == 0] = new_max_label
