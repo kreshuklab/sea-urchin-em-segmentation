@@ -7,6 +7,7 @@ from torch_em.model import AnisotropicUNet
 import torch_em.shallow2deep as shallow2deep
 
 
+# TODO larger patch shape in xy
 def get_pseudolabel_loader(args, split):
     patch_shape = (32, 256, 256)
 
@@ -15,13 +16,13 @@ def get_pseudolabel_loader(args, split):
 
     if split == "train":
         n_samples = 1000
-        rois = [np.s_[:75, :, :]] * 4
+        rois = [np.s_[:68, :, :]] * 4
     else:
         n_samples = 25
-        rois = [np.s_[75:, :, :]] * 4
+        rois = [np.s_[68:, :, :]] * 4
     assert len(rois) == len(paths)
 
-    rf_path = "../boundary_prediction.ilp"
+    rf_path = "../ilastik_projects/jil/vol3_3D_pixelclass.ilp"
     rf_config = (rf_path, 3)
     ckpt = "./checkpoints/cremi3d-v1"
 
@@ -31,7 +32,7 @@ def get_pseudolabel_loader(args, split):
         raw_paths=paths, raw_key="raw", checkpoint=ckpt, rf_config=rf_config,
         batch_size=args.batch_size, patch_shape=patch_shape, rois=rois,
         raw_transform=raw_transform, n_samples=n_samples, ndim=3,
-        is_raw_dataset=True, shuffle=True, num_workers=12,
+        is_raw_dataset=True, shuffle=True, num_workers=16,
     )
     return loader
 
