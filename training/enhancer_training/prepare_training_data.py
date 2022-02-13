@@ -1,6 +1,9 @@
 import os
 from glob import glob
+
+import numpy as np
 from elf.io import open_file
+from elf.wrapper.resized_volume import ResizedVolume
 from skimage.transform import downscale_local_mean, resize
 
 
@@ -41,6 +44,50 @@ def prepare_platy_cells():
         prepare_volume(path, out_path, "volumes/raw/s1", "volumes/labels/segmentation/s1")
 
 
+def prepare_neuropil_data():
+    data_path = "/g/arendt/EM_6dpf_segmentation/platy-browser-data/data/rawdata/sbem-6dpf-1-whole-raw.n5"
+    data_key = "setup0/timepoint0/s3"
+    with open_file(data_path, "r") as f:
+        ds = f[data_key]
+        shape = ds.shape
+    print(shape)
+
+    lab_path = "/g/arendt/EM_6dpf_segmentation/platy-browser-data/data/rawdata/sbem-6dpf-1-whole-segmented-neuropil.n5"
+    lab_key = "setup0/timepoint0/s0"
+    with open_file(lab_path, "r") as f:
+        ds = f[lab_key]
+        ds.n_threads = 16
+        print("Loading data ...")
+        labels = ds[:]
+    print("Resize labels ...")
+    labels = ResizedVolume(labels, shape, order=0)[:]
+    assert labels.shape == shape
+    print(labels.min(), labels.max())
+
+    print("Find bounding box ...")
+    mask = np.where(labels > 0)
+    bb = tuple(slice(
+        int(np.min(ma)), int(np.max(ma)) + 1
+    ) for ma in mask)
+    print(bb)
+    labels = labels[bb]
+
+    print("Load raw data ...")
+    with open_file(data_path, "r") as f:
+        ds = f[data_key]
+        ds.n_threads = 16
+        raw = ds[bb]
+    assert raw.shape == labels.shape
+
+    save_path = "./data/neuropil/data.n5"
+    os.makedirs("./data/neuropil", exist_ok=True)
+    print("Save data ...")
+    with open_file(save_path, "a") as f:
+        f.create_dataset("raw", data=raw, compression="gzip", chunks=(96, 96, 96))
+        f.create_dataset("labels", data=labels, compression="gzip", chunks=(96, 96, 96))
+
+
 if __name__ == "__main__":
     # prepare_cremi()
-    prepare_platy_cells()
+    # prepare_platy_cells()
+    prepare_neuropil_data()

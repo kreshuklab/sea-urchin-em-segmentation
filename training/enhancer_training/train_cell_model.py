@@ -1,7 +1,6 @@
 import os
 from glob import glob
 
-import numpy as np
 import torch_em
 import torch_em.shallow2deep as shallow2deep
 from torch_em.model import AnisotropicUNet
@@ -47,18 +46,15 @@ def get_cell_loader(args, split, rf_folder):
     rf_paths.sort()
     patch_shape = (32, 256, 256)
 
-    paths = glob(os.path.join(args.input, "*.h5"))
+    paths = glob("./data/cells/*.n5")
     paths.sort()
 
     if split == "train":
         n_samples = 1000
-        rois = 2 * (np.s_[:, :, :],) + (np.s_[:75, :, :],)
-        assert len(rois) == len(paths)
+        paths = paths[:-1]
     else:
-        n_samples = 25
-        rois = (np.s_[75:, :, :],)
+        n_samples = 50
         paths = paths[-1:]
-        assert len(paths) == 1
 
     raw_transform = torch_em.transform.raw.normalize
     label_transform = torch_em.transform.BoundaryTransform(ndim=3)
@@ -66,7 +62,7 @@ def get_cell_loader(args, split, rf_folder):
         raw_paths=paths, raw_key="volumes/raw/s1",
         label_paths=paths, label_key="volumes/labels/segmentation/s1",
         rf_paths=rf_paths,
-        batch_size=args.batch_size, patch_shape=patch_shape, rois=rois,
+        batch_size=args.batch_size, patch_shape=patch_shape,
         raw_transform=raw_transform, label_transform=label_transform,
         n_samples=n_samples, ndim=3, is_seg_dataset=True, shuffle=True,
         num_workers=24, filter_config=get_filter_config(),

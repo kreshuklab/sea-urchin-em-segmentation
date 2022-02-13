@@ -1,7 +1,6 @@
 import os
 from glob import glob
 
-import numpy as np
 import torch_em
 import torch_em.shallow2deep as shallow2deep
 from torch_em.model import AnisotropicUNet
@@ -38,6 +37,7 @@ def prepare_shallow2deep_nuclei(args, out_folder):
         raw_transform=raw_transform, label_transform=to_binary,
         is_seg_dataset=True,
         filter_config=get_filter_config(),
+        balance_labels=False
     )
 
 
@@ -46,25 +46,22 @@ def get_nucleus_loader(args, split, rf_folder):
     rf_paths.sort()
     patch_shape = (64, 192, 192)
 
-    paths = glob(os.path.join(args.input, "*.h5"))
+    paths = glob("/scratch/pape/platy/nuclei/*.h5")
     paths.sort()
 
     if split == "train":
         n_samples = 1000
-        rois = 2 * (np.s_[:, :, :],) + (np.s_[:75, :, :],)
-        assert len(rois) == len(paths)
+        paths = paths[:-1]
     else:
         n_samples = 25
-        rois = (np.s_[75:, :, :],)
         paths = paths[-1:]
-        assert len(paths) == 1
 
     raw_transform = torch_em.transform.raw.normalize
     loader = shallow2deep.get_shallow2deep_loader(
         raw_paths=paths, raw_key="volumes/raw",
-        label_paths=paths, label_key="volumes/labels/nucleus_insance_labels",
+        label_paths=paths, label_key="volumes/labels/nucleus_instance_labels",
         rf_paths=rf_paths,
-        batch_size=args.batch_size, patch_shape=patch_shape, rois=rois,
+        batch_size=args.batch_size, patch_shape=patch_shape,
         raw_transform=raw_transform, label_transform=to_binary,
         n_samples=n_samples, ndim=3, is_seg_dataset=True, shuffle=True,
         num_workers=24, filter_config=get_filter_config(),
