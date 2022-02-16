@@ -6,7 +6,6 @@ import subprocess
 import bioimageio.core
 from bioimageio.core.prediction import predict_with_tiling
 from elf.io import open_file
-from elf.wrapper.resized_volume import ResizedVolume
 from ilastik.experimental.api import from_project_file
 from xarray import DataArray
 
@@ -49,7 +48,7 @@ def _predict_autocontext(data, ilp, prefix):
     return pred
 
 
-def precompute_pseudo_labels_block(input_dataset, coordinate, output_path, ilp, enhancer, mask=None):
+def precompute_pseudo_labels_block(input_dataset, coordinate, output_path, ilp, enhancer):
     # halo = [16, 32, 32]
     halo = [75, 768, 768]
 
@@ -57,21 +56,9 @@ def precompute_pseudo_labels_block(input_dataset, coordinate, output_path, ilp, 
     bb = tuple(slice(coord - ha, coord + ha) for coord, ha in zip(coordinate, halo))
     data = input_dataset[bb]
 
-    if mask is not None:
-        fg_mask = mask[bb].astype("bool")
-        assert fg_mask.shape == data.shape
-
-    # import napari
-    # v = napari.Viewer()
-    # v.add_image(data)
-    # v.add_labels(fg_mask)
-    # napari.run()
-    # return
-
-    # TODO support autocontext
     print("Predict ilastik ...")
     if isinstance(ilp, str):
-        rf_pred = _predict_autocontext(data, ilp, prefix="vanilla" if mask is None else "mask")
+        rf_pred = _predict_autocontext(data, ilp, prefix="vanilla")
     else:
         input_ = DataArray(data, dims=tuple("zyx"))
         rf_pred = ilp.predict(input_).values
@@ -82,10 +69,6 @@ def precompute_pseudo_labels_block(input_dataset, coordinate, output_path, ilp, 
     tiling = {"halo": {"x": 32, "y": 32, "z": 4},
               "tile": {"x": 384, "y": 384, "z": 32}}
     pred = predict_with_tiling(enhancer, rf_pred, tiling=tiling, verbose=True)[0].values[0, 0]
-    # pred = enhancer(rf_pred)[0].values[0, 0]
-
-    if fg_mask is not None:
-        pred[~fg_mask] = 0.0
 
     with open_file(output_path, "w") as f:
         f.create_dataset("raw", data=data, compression="gzip")
@@ -93,9 +76,9 @@ def precompute_pseudo_labels_block(input_dataset, coordinate, output_path, ilp, 
 
 
 # pseudo labels smear out things a lot, cosinder using something much sparser, e.g. autocontext
-def precompute_pseudo_labels(autocontext=False, apply_mask=False):
+def precompute_pseudo_labels(autocontext=False):
     root = "./pseudo_labels/autocontext" if autocontext else "./pseudo_labels/rf"
-    out_dir = f"{root}/masked" if apply_mask else f"{root}/vanilla"
+    out_dir = f"{root}/vanilla"
     os.makedirs(out_dir, exist_ok=True)
 
     model_path = "../networks/cremi-v1.zip"
@@ -103,19 +86,11 @@ def precompute_pseudo_labels(autocontext=False, apply_mask=False):
         ilp = "../ilastik_projects/jil-3d-autocontext.ilp"
     else:
         ilp = from_project_file("../ilastik_projects/jil/vol3_3D_pixelclass.ilp")
-    mask_path = "../segmentation/data/mask.h5"
 
     model = bioimageio.core.load_resource_description(model_path)
     with bioimageio.core.create_prediction_pipeline(bioimageio_model=model) as pp, open_file(DATA_PATH, "r") as f:
         ds = f[KEY]
         ds.n_threads = 8
-
-        if apply_mask:
-            with open_file(mask_path) as f:
-                mask = f["neuropil"][:] > 0.5
-            mask = ResizedVolume(mask, ds.shape, order=0)
-        else:
-            mask = None
 
         for block_id, pos in enumerate(POSITIONS):
             output_path = os.path.join(out_dir, f"block-{block_id}.h5")
@@ -124,15 +99,14 @@ def precompute_pseudo_labels(autocontext=False, apply_mask=False):
             #     print("already exists")
             #     continue
             coordinate = [int(po / res) for po, res in zip(pos["position"][::-1], RESOLUTION)]
-            precompute_pseudo_labels_block(ds, coordinate, output_path, ilp, pp, mask=mask)
+            precompute_pseudo_labels_block(ds, coordinate, output_path, ilp, pp)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--autocontext", default=0, type=int)
-    parser.add_argument("-m", "--apply_mask", default=0, type=int)
     args = parser.parse_args()
-    precompute_pseudo_labels(bool(args.autocontext), bool(args.apply_mask))
+    precompute_pseudo_labels(bool(args.autocontext))
 
 
 if __name__ == "__main__":

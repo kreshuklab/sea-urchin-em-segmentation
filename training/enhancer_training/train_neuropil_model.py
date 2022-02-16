@@ -3,6 +3,7 @@ from torch_em.model import UNet3d
 from torch_em.util import parser_helper
 
 
+# TODO check whether the current model does anything (training looks quite weird)
 def get_loader(args, patch_shape):
     path = "./data/neuropil/data.n5"
     sampler = torch_em.data.MinForegroundSampler(0.05)
