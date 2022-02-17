@@ -1,0 +1,86 @@
+{
+  "is2D": false,
+  "sources": {
+    "foreground": {
+      "image": {
+        "imageData": {
+          "bdv.n5": {
+            "relativePath": "images/bdv-n5/foreground.xml"
+          }
+        }
+      }
+    },
+    "raw": {
+      "image": {
+        "imageData": {
+          "bdv.n5": {
+            "relativePath": "images/bdv-n5/raw.xml"
+          }
+        }
+      }
+    }
+  },
+  "timepoints": 1,
+  "views": {
+    "default": {
+      "isExclusive": false,
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "color": "white",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "name": "raw",
+            "opacity": 1.0,
+            "sources": [
+              "raw"
+            ]
+          }
+        }
+      ],
+      "uiSelectionGroup": "images"
+    },
+    "foreground": {
+      "isExclusive": false,
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "color": "white",
+            "contrastLimits": [
+              0.0,
+              1.0
+            ],
+            "name": "foreground",
+            "opacity": 1.0,
+            "sources": [
+              "foreground"
+            ]
+          }
+        }
+      ],
+      "uiSelectionGroup": "masks"
+    },
+    "raw": {
+      "isExclusive": false,
+      "sourceDisplays": [
+        {
+          "imageDisplay": {
+            "color": "white",
+            "contrastLimits": [
+              0.0,
+              255.0
+            ],
+            "name": "raw",
+            "opacity": 1.0,
+            "sources": [
+              "raw"
+            ]
+          }
+        }
+      ],
+      "uiSelectionGroup": "images"
+    }
+  }
+}

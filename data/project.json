@@ -1,8 +1,10 @@
 {
   "datasets": [
-    "S016"
+    "S016",
+    "S016-base",
+    "S016-disc"
   ],
-  "defaultDataset": "S016",
+  "defaultDataset": "S016-base",
   "imageDataFormats": [
     "bdv.n5"
   ],
