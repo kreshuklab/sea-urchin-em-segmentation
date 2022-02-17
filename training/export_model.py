@@ -4,19 +4,17 @@ import h5py
 from torch_em.util import export_bioimageio_model, get_default_citations
 
 
-def export_enhancer(version):
-    path = "./data/sampleA.h5"
+def export_pseudolabel_model(checkpoint):
+    path = "./pseudo_labels/rf/vanilla/block-0.h5"
     with h5py.File(path, "r") as f:
-        input_data = f["volumes/raw"][:16, :256, :256]
+        input_data = f["raw"][:16, :256, :256]
 
-    checkpoint = f"./checkpoints/cremi3d-v{version}"
-
-    name = f"cremi-v{version}"
-    description = "Affinity segmentation"
-    tags = ["u-net", "cell-segmentation", "segmentation", "phase-contrast", "livecell"]
+    name = "_".join(os.path.basename(checkpoint).split("_")[1:])
+    description = "Neuron boundary segmentation"
+    tags = ["u-net", "neuron-segmentation", "segmentation"]
 
     # eventually we should refactor the citation logic
-    cite = get_default_citations(model="UNet2d")
+    cite = get_default_citations(model="UNet3d")
 
     output = f"./networks/{name}"
     os.makedirs(output, exist_ok=True)
@@ -38,20 +36,11 @@ def export_enhancer(version):
     )
 
 
-# TODO
-def export_pseudolabel(version):
-    pass
-
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--version", required=True, type=int)
-    parser.add_argument("-p", "--pseudolabel", type=int, default=0)
+    parser.add_argument("-c", "--checkpoint", required=True)
     args = parser.parse_args()
-    if args.pseudolabel:
-        export_pseudolabel(args.version)
-    else:
-        export_enhancer(args.version)
+    export_pseudolabel_model(args.checkpoint)
 
 
 if __name__ == "__main__":
