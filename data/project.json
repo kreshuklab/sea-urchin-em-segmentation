@@ -1,6 +1,5 @@
 {
   "datasets": [
-    "S016",
     "S016-base",
     "S016-disc"
   ],
