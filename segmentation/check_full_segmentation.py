@@ -16,7 +16,7 @@ POSITIONS = [
 
 # check the current segmentation and intermediates at one of the intersting points from jil
 def check_full_seg(position, halo=[50, 512, 512]):
-    raw_path = "../data/S016/images/bdv-n5/S016_aligned_full.n5"
+    raw_path = "../data/S016-base/images/bdv-n5/raw.n5"
     raw_key = "setup0/timepoint0/s0"
     bb = tuple(
         slice(int(pos - ha), int(pos + ha)) for pos, ha in zip(position, halo)
@@ -28,12 +28,12 @@ def check_full_seg(position, halo=[50, 512, 512]):
         ds.n_threads = 8
         raw = ds[bb]
 
-    mask_path = "../data/S016/images/bdv-n5/foreground.n5"
+    mask_path = "../data/S016-base/images/bdv-n5/foreground.n5"
     mask_key = "setup0/timepoint0/s0"
     mask_file = load_mask(mask_path, mask_key, shape)
     mask = mask_file[bb]
 
-    tmp_path = "/scratch/pape/jils_project/full_seg/data.n5"
+    tmp_path = "/scratch/pape/jils_project/seg_S016-base/data.n5"
     rf_key = "predictions/rf"
     enh_key = "predictions/enhancer"
     ws_key = "segmentations/watershed"

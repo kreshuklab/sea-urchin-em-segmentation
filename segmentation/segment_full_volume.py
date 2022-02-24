@@ -39,29 +39,19 @@ def predict_boundaries(input_path, input_key,
                        output_path, output_key,
                        mask_path, mask_key, model,
                        tmp_folder, target, max_jobs):
-    import bioimageio.core
     from cluster_tools.inference import InferenceLocal, InferenceSlurm
     task = InferenceLocal if target == "local" else InferenceSlurm
     config_dir = os.path.join(tmp_folder, "configs")
-
-    model_spec = bioimageio.core.load_resource_description(model)
-    halo = model_spec.outputs[0].halo[2:]
-    assert len(halo) == 3
-
-    # TODO expose convenience function in bioimageio for this
-    # make sure the block shape fits the network
-    # min_shape = model_spec.inputs[0].shape.min[2:]
-    # step = model_spec.inputs[0].shape.step[2:]
-    # block_shape =
-    # full_block_shape = [bs + 2 * ha]
 
     global_config = task.default_global_config()
     default_global_config = deepcopy(global_config)
 
     full_block_shape = (32, 384, 384)
+    halo = (8, 64, 64)
     block_shape = tuple(fbs - 2*ha for fbs, ha in zip(full_block_shape, halo))
     print(full_block_shape, block_shape, halo)
     global_config["block_shape"] = block_shape
+    os.makedirs(config_dir, exist_ok=True)
     with open(os.path.join(config_dir, "global.config"), "w") as f:
         json.dump(global_config, f)
 
@@ -138,14 +128,10 @@ def blockwise_multicut(path, boundary_key,
 
 
 def segment_full_volume(
-    input_path, mask_path, tmp_path, ilp, model, use_bb, target, max_jobs, max_jobs_gpu
+    input_path, mask_path, tmp_path, ilp, model, target, max_jobs, max_jobs_gpu
 ):
     tmp = os.path.join(tmp_path, "tmp")
     mask_key = "setup0/timepoint0/s0"
-
-    # TODO find proper bounding box
-    if use_bb:
-        pass
 
     path = os.path.join(tmp_path, "data.n5")
     if ilp == "":  # network prediction directly from raw
@@ -168,33 +154,38 @@ def segment_full_volume(
     )
 
 
+# TODO add postprocessing to apply size filter and maybe more
 def main():
     this_folder = os.path.split(__file__)[0]
-    default_ilp = os.path.join(this_folder, "../ilastik_projects/jil/vol3_3D_pixelclass.ilp")
-    default_model = os.path.join(this_folder, "../networks/cremi-v1.zip")
+
+    # old version with enhancer
+    # default_ilp = os.path.join(this_folder, "../ilastik_projects/jil/vol3_3D_pixelclass.ilp")
+    # default_model = os.path.join(this_folder, "../networks/cremi-v1.zip")
+
+    # new version with pseudo-label model
+    default_ilp = ""
+    default_model = os.path.join(this_folder, "../training/networks/roots-rf_masked/roots-rf_masked.zip")
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--dataset", default="S016-base")
     parser.add_argument("-i", "--ilp", default=default_ilp)
     parser.add_argument("-m", "--model", default=default_model)
-    parser.add_argument("-b", "--use_bb", default=0, type=int)
     parser.add_argument("-t", "--target", default="slurm")
     parser.add_argument("--max_jobs", default=200, type=int)
     parser.add_argument("--max_jobs_gpu", default=12, type=int)
 
     args = parser.parse_args()
-    use_bb = bool(args.use_bb)
+    dataset = args.dataset
 
-    input_path = os.path.abspath(os.path.join(this_folder, "../data/S016/images/bdv-n5/S016_aligned_full.n5"))
+    input_path = os.path.abspath(os.path.join(this_folder, f"../data/{dataset}/images/bdv-n5/raw.n5"))
     assert os.path.exists(input_path), input_path
-    mask_path = os.path.abspath(os.path.join(this_folder, "../data/S016/images/bdv-n5/foreground.n5"))
+    mask_path = os.path.abspath(os.path.join(this_folder, f"../data/{dataset}/images/bdv-n5/foreground.n5"))
     assert os.path.exists(mask_path), mask_path
 
-    tmp_path = "/scratch/pape/jils_project/full_seg"
-    if use_bb:
-        tmp_path += "_with_bb"
+    tmp_path = f"/scratch/pape/jils_project/seg_{dataset}"
 
     os.makedirs(tmp_path, exist_ok=True)
-    segment_full_volume(input_path, mask_path, tmp_path, args.ilp, args.model, use_bb,
+    segment_full_volume(input_path, mask_path, tmp_path, args.ilp, args.model,
                         args.target, args.max_jobs, args.max_jobs_gpu)
 
 
