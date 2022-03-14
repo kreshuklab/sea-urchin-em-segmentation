@@ -86,10 +86,10 @@ def filter_nuclei(block_id, input_path, output_path):
 
 
 def get_carving_mask(block_id, shape):
-    mask_path = f"./pseudo_labels/carving-masks/block{block_id}.h5"
+    mask_path = f"./pseudo_labels/carving-masks/carving-block{block_id}.h5"
     print("Load mask")
     with open_file(mask_path, "r") as f:
-        mask = f["exported_data"][:] != 0
+        mask = f["exported_data"][:].squeeze() != 0
     # print("Filter mask")
     # for z in range(mask.shape[0]):
     #     mask[z] = binary_erosion(mask[z], iterations=2)
@@ -102,7 +102,7 @@ def get_carving_mask(block_id, shape):
 def filter_carving(block_id, input_, output_path):
     with open_file(input_, "r") as f:
         raw = f["raw"][:]
-        labels = f["pseudo-labels"][:]
+        labels = f["pseudo-labels"][:].squeeze()
     carving_mask = get_carving_mask(block_id, labels.shape)
     labels[carving_mask] = 0.0
     with open_file(output_path, "w") as f:
@@ -122,5 +122,7 @@ def filter_all_pseudo_labels(root):
 
 
 if __name__ == "__main__":
-    filter_all_pseudo_labels("./pseudo_labels/rf")
-    filter_all_pseudo_labels("./pseudo_labels/autocontext")
+    # filter_all_pseudo_labels("./pseudo_labels/rf")
+    # filter_all_pseudo_labels("./pseudo_labels/autocontext")
+    # filter_all_pseudo_labels("./pseudo_labels/rf2")
+    filter_all_pseudo_labels("./pseudo_labels/segmentor")

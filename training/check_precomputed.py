@@ -22,4 +22,6 @@ def check_precomputed(input_):
         check_pre(ff)
 
 
-check_precomputed("./pseudo_labels/rf/masked-carving")
+# check_precomputed("./pseudo_labels/rf/masked-carving")
+# check_precomputed("pseudo_labels/rf2/masked-carving")
+check_precomputed("pseudo_labels/segmentor/masked-carving")

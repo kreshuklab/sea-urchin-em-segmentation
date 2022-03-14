@@ -19,12 +19,11 @@ def predict_checkpoint(raw, ckpt, name):
 
 def check_all_predictions():
     checkpoints = [
-        "checkpoints/precomputed_roots-rf_masked",
-        "checkpoints/precomputed_roots-autocontext_masked",
-        "checkpoints/precomputed_roots-autocontext-rf_masked",
+        "checkpoints/precomputed_roots-rf2_masked",
+        "checkpoints/precomputed_roots-segmentor_masked",
     ]
-    block_id = 2
-    data_path = f"./pseudo_labels/rf/vanilla/block-{block_id}.h5"
+    block_id = 3
+    data_path = f"./pseudo_labels/rf2/vanilla/block-{block_id}.h5"
     with open_file(data_path, "r") as f:
         raw = f["raw"][:]
 
@@ -42,8 +41,8 @@ def check_all_predictions():
 
 def compare_predictions():
     ckpt = "checkpoints/precomputed_roots-rf_masked"
-    block_id = 2
-    data_path = f"./pseudo_labels/rf/vanilla/block-{block_id}.h5"
+    block_id = 4
+    data_path = f"./pseudo_labels/rf2/vanilla/block-{block_id}.h5"
     with open_file(data_path, "r") as f:
         raw = f["raw"][:]
         enhancer = f["pseudo-labels"][:]
@@ -59,5 +58,5 @@ def compare_predictions():
 
 
 if __name__ == "__main__":
-    compare_predictions()
-    # check_all_predictions()
+    # compare_predictions()
+    check_all_predictions()

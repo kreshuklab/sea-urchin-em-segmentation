@@ -1,6 +1,4 @@
 import os
-from glob import glob
-
 import torch_em
 from torch_em.model import AnisotropicUNet
 
@@ -9,21 +7,24 @@ def get_loader(split, patch_shape, args):
     raw_key = "raw"
     label_key = "pseudo-labels"
 
+    # we leave out 2 completely due to too many nuclei
+    if split == "train":
+        ids = [0, 1, 5, 6, 7, 8, 9]
+    else:
+        ids = [3, 4]
+
     paths = []
     for root_name in args.roots:
-        assert root_name in ("autocontext", "rf")
+        assert root_name in ("autocontext", "rf", "rf2", "segmentor")
         root = f"./pseudo_labels/{root_name}"
         if args.masked:
             root = os.path.join(root, "masked-carving")
         else:
             root = os.path.join(root, "vanilla")
-        files = glob(os.path.join(root, "*.h5"))
-        files.sort()
-        assert len(files) > 0
-        if split == "train":
-            paths.extend(files[:2])
-        else:
-            paths.append(files[-1])
+        for fid in ids:
+            data_path = os.path.join(root, f"block-{fid}.h5")
+            assert os.path.exists(data_path)
+            paths.append(data_path)
 
     n_samples = 500 if split == "train" else 25
     loader = torch_em.default_segmentation_loader(
