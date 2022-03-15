@@ -164,7 +164,7 @@ def main():
 
     # new version with pseudo-label model
     default_ilp = ""
-    default_model = os.path.join(this_folder, "../training/networks/roots-rf_masked/roots-rf_masked.zip")
+    default_model = os.path.join(this_folder, "../training/networks/roots-segmentor_masked/roots-segmentor_masked.zip")
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dataset", default="S016-base")
