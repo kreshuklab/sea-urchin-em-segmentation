@@ -10,6 +10,15 @@
         }
       }
     },
+    "neurons": {
+      "segmentation": {
+        "imageData": {
+          "bdv.n5": {
+            "relativePath": "images/bdv-n5/neurons.xml"
+          }
+        }
+      }
+    },
     "raw": {
       "image": {
         "imageData": {
@@ -61,6 +70,22 @@
         }
       ],
       "uiSelectionGroup": "masks"
+    },
+    "neurons": {
+      "isExclusive": false,
+      "sourceDisplays": [
+        {
+          "segmentationDisplay": {
+            "lut": "glasbey",
+            "name": "neurons",
+            "opacity": 0.5,
+            "sources": [
+              "neurons"
+            ]
+          }
+        }
+      ],
+      "uiSelectionGroup": "segmentation"
     },
     "raw": {
       "isExclusive": false,
