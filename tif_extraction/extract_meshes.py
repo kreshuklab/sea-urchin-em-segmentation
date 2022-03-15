@@ -47,7 +47,6 @@ def main():
     offset = np.array([b.start for b in bb])
     verts += offset
 
-    mesh_io.write_obj("mesh.obj", verts, faces, normals)
     mesh_io.write_ply("mesh.ply", verts, faces)
 
 
