@@ -8,6 +8,9 @@ import zarr
 
 def extract_highres_cutout(input_project, output, name, position, size):
     data_path = os.path.join(input_project, f"S016-{name}", "images", "bdv-n5", "raw.n5")
+    # windows path for Jil
+    # data_path = "Y:\\pape\\jil\\data\\S016-base\\images\\bdv-n5\\raw.n5"
+    assert os.path.exists(data_path)
     data_key = "setup0/timepoint0/s0"
 
     # positon: from physical position to position in data space
