@@ -1,0 +1,18 @@
+channels:
+    - pytorch
+    - nvidia
+    - conda-forge
+name:
+    sea_urchin_seg
+dependencies:
+    - affogato
+    - bioimageio.core >=0.5.0
+    - python-elf
+    - pytorch-cuda=11.6  # you may need to update the pytorch version to match your system
+    - tensorboard
+    - tifffile
+    - torchvision
+    - tqdm
+    - torch_em
+    - kornia
+    - mobie_utils

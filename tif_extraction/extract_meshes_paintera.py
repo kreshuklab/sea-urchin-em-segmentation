@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from datetime import date
 
 import numpy as np
 import zarr
@@ -63,11 +64,18 @@ def extract_mesh(seg_path, seg_key, seg_ids, scale, project, to_xyz=True):
         ds.n_threads = 8
         seg = ds[:]
 
+    today = date.today().strftime("%Y%m%d")
+    output_folder = f"{today}-{project}-scale{scale}"
+    os.makedirs(output_folder, exist_ok=True)
+
     resolution = get_resolution(scale)
     for seg_id in seg_ids:
         print("computing mesh for segment_id", seg_id)
         mask = seg == seg_id
         nfg = mask.sum()
+        if nfg == 0:
+            print("WARNING:", seg_id, "is empty!")
+            continue
         print("Foreground:", nfg, "/", mask.size, "(", float(nfg) / mask.size, ")")
         verts, faces, normals = marching_cubes(mask)
         verts *= np.array(resolution)
@@ -78,7 +86,7 @@ def extract_mesh(seg_path, seg_key, seg_ids, scale, project, to_xyz=True):
         # offset = np.array([b.start for b in bb])
         # verts += offset
         print("saving mesh for segment_id", seg_id)
-        mesh_io.write_ply(f"segment-{seg_id}-{project}.ply", verts, faces)
+        mesh_io.write_ply(os.path.join(output_folder, f"segment-{seg_id}.ply"), verts, faces)
 
 
 def require_segment_ids(paintera_path, ids):
@@ -94,11 +102,11 @@ def export_paintera(output_path, scale, project):
     if project == "new":
         paintera_path = "/g/emcf/pape/jil/segmentation/paintera/neurons.n5"
         project_path = "/g/emcf/carl/painteraprojekte/projektnewneurons"
-        tmp_folder = "./tmp_export_new"
+        tmp_folder = f"./tmp_export_new-scale{scale}"
     else:
         paintera_path = "/g/emcf/pape/jil/segmentation/paintera/old.n5"
         project_path = "/g/emcf/carl/painteraprojekte/projektoldneurons"
-        tmp_folder = "./tmp_export_old"
+        tmp_folder = f"./tmp_export_old-scale{scale}"
     export_paintera_segmentation(paintera_path, project_path, output_path, scale, tmp_folder)
 
 
@@ -113,7 +121,7 @@ def main():
     project = args.project
     scale = args.scale
 
-    path = "./paintera-export-{project}.n5"
+    path = f"./paintera-export-{project}-{scale}.n5"
     if not os.path.exists(path):
         export_paintera(path, scale, project)
 
