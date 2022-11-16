@@ -9,14 +9,14 @@ The folder `training` contains the scripts for training neural networks for segm
 Here, we make use of the method published in [Matskevych et al.](https://www.frontiersin.org/articles/10.3389/fcomp.2022.805166/full).
 It segemnts the neuron boundaries in three steps:
 1. Initial segmentation of the boundaries with ilastik pixel classification.
-2. Improving the boundary segmentation with an *Enhancer*, a network that was trained to improve the pixel classification predictions on data with segmentation groundtruth from htttps://www.cremi.org.
+2. Improving the boundary segmentation with an *Enhancer*, a network that was trained to improve the pixel classification predictions on data with segmentation groundtruth from www.cremi.org.
 3. Training a final segmentation network that learns to segment boundaries from the EM data directly using the predictions from the Enhancer as target signal.
 
 The scripts `train_precomputed.py` and `train_pseudolabels.py` are used to train different versions of the final semgentation network, the other scripts are used for data preprocessing and for checking intermediate results.
 
 ## Segmentation
 
-The folder `segmentation` contains the scripts to segment neuron fragments in the full EM volume. It uses the method from [Pape et al.]() based on the boundary predictions of the segmentation network. This segmentation is then converted into a [paintera]() project, which enables manually assembling full neurons out of the neuron fragments.
+The folder `segmentation` contains the scripts to segment neuron fragments in the full EM volume. It uses the method from [Pape et al.](https://openaccess.thecvf.com/content_ICCV_2017_workshops/w1/html/Pape_Solving_Large_Multicut_ICCV_2017_paper.html) based on the boundary predictions of the segmentation network. This segmentation is then converted into a [paintera](https://github.com/saalfeldlab/paintera) project, which enables manually assembling full neurons out of the neuron fragments.
 
 The script `segment_full_volume.py` runs the segmentation workflow, `to_paintera.py` converts the result to the paintera format.
 
